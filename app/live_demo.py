@@ -7,6 +7,7 @@ from app.agents.basic_classifier import BasicFailureClassifier
 from app.agents.model_repair import ModelRepairAgent
 from app.mission.controller import execute_mission
 from app.mission.models import Mission
+from app.mission.sandbox_runner import DockerSandboxRunner
 from app.models.codex_cli import CodexCLIModel
 
 
@@ -20,7 +21,12 @@ def main() -> None:
 
     mission = Mission(
         repo_path=repo,
-        test_command=["pytest", "-q"],
+        test_command=[
+            "pytest",
+            "-q",
+            "-p",
+            "no:cacheprovider",
+        ],
         target_file=Path("calculator.py"),
     )
 
@@ -32,14 +38,16 @@ def main() -> None:
         mission=mission,
         repair_agent=repair_agent,
         failure_classifier=BasicFailureClassifier(),
+        runner=DockerSandboxRunner(),
     )
 
     console.print(
         Panel.fit(
             f"""
-[bold]NightShift Mission #002[/bold]
+[bold]NightShift Mission #003[/bold]
 
 Provider: Codex CLI
+Execution: Docker sandbox
 
 Before exit code: {evidence.before_exit_code}
 Patch: {evidence.patch_summary}
@@ -49,7 +57,7 @@ Changed files: {", ".join(evidence.changed_files)}
 
 Verified: {"YES" if evidence.verified else "NO"}
 """,
-            title="Live Evidence Report",
+            title="Sandboxed Evidence Report",
         )
     )
 

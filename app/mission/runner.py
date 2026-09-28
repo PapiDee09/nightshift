@@ -1,15 +1,37 @@
+import os
 import subprocess
+import tempfile
 from pathlib import Path
 
+from app.mission.execution import CommandRunner
 
-def run_command(command: list[str], cwd: Path) -> tuple[int, str]:
-    result = subprocess.run(
-        command,
-        cwd=cwd,
-        capture_output=True,
-        text=True,
-        check=False,
-    )
 
-    output = (result.stdout or "") + (result.stderr or "")
-    return result.returncode, output
+class LocalRunner(CommandRunner):
+    def run(
+        self,
+        command: list[str],
+        repo_path: Path,
+    ) -> tuple[int, str]:
+        with tempfile.TemporaryDirectory(
+            prefix="nightshift-pycache-"
+        ) as pycache_dir:
+            env = os.environ.copy()
+            env["PYTHONPYCACHEPREFIX"] = pycache_dir
+            env["PYTHONDONTWRITEBYTECODE"] = "1"
+
+            result = subprocess.run(
+                command,
+                cwd=repo_path,
+                capture_output=True,
+                text=True,
+                check=False,
+                env=env,
+            )
+
+        output = (
+            result.stdout
+            + ("\n" if result.stdout and result.stderr else "")
+            + result.stderr
+        )
+
+        return result.returncode, output

@@ -1,21 +1,27 @@
 from app.agents.base import RepairAgent
 from app.agents.failure_classifier import FailureClassifier
+from app.mission.execution import CommandRunner
 from app.mission.models import Evidence, Mission
-from app.mission.runner import run_command
+from app.mission.runner import LocalRunner
 
 
 def execute_mission(
     mission: Mission,
     repair_agent: RepairAgent,
     failure_classifier: FailureClassifier | None = None,
+    runner: CommandRunner | None = None,
 ) -> Evidence:
-    before_code, before_output = run_command(
+    command_runner = runner or LocalRunner()
+
+    before_code, before_output = command_runner.run(
         mission.test_command,
         mission.repo_path,
     )
 
     if before_code == 0:
-        raise RuntimeError("Mission target is not currently failing.")
+        raise RuntimeError(
+            "Mission target is not currently failing."
+        )
 
     if failure_classifier is not None:
         classification = failure_classifier.classify(
@@ -51,7 +57,7 @@ def execute_mission(
 
     target_path.write_text(patched_source)
 
-    after_code, after_output = run_command(
+    after_code, after_output = command_runner.run(
         mission.test_command,
         mission.repo_path,
     )
