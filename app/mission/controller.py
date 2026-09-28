@@ -84,12 +84,17 @@ def execute_mission(
                 changed_files=[
                     str(mission.target_file)
                 ],
+                applied=False,
             )
 
-        workspace_manager.commit_file(
-            workspace,
-            mission.target_file,
-        )
+        applied = False
+
+        if mission.apply_verified_patch:
+            workspace_manager.commit_file(
+                workspace,
+                mission.target_file,
+            )
+            applied = True
 
         return Evidence(
             before_exit_code=before_code,
@@ -101,4 +106,5 @@ def execute_mission(
             changed_files=[
                 str(mission.target_file)
             ],
+            applied=applied,
         )

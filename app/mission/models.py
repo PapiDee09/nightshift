@@ -7,6 +7,7 @@ class Mission(BaseModel):
     repo_path: Path
     test_command: list[str]
     target_file: Path
+    apply_verified_patch: bool = False
 
 
 class Evidence(BaseModel):
@@ -20,6 +21,7 @@ class Evidence(BaseModel):
 
     rolled_back: bool = False
     changed_files: list[str] = Field(default_factory=list)
+    applied: bool = False
 
     @property
     def verified(self) -> bool:
