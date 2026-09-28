@@ -1,0 +1,16 @@
+{
+  "type": "object",
+  "properties": {
+    "patched_source": {
+      "type": "string"
+    },
+    "summary": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "patched_source",
+    "summary"
+  ],
+  "additionalProperties": false
+}
