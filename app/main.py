@@ -33,6 +33,8 @@ def main() -> None:
 Before exit code: {evidence.before_exit_code}
 Patch: {evidence.patch_summary}
 After exit code: {evidence.after_exit_code}
+Rollback: {"YES" if evidence.rolled_back else "NO"}
+Changed files: {", ".join(evidence.changed_files)}
 
 Verified: {"YES" if evidence.verified else "NO"}
 """,
