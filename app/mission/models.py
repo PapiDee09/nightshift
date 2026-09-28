@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class Mission(BaseModel):
@@ -19,7 +19,7 @@ class Evidence(BaseModel):
     after_output: str
 
     rolled_back: bool = False
-    changed_files: list[str] = []
+    changed_files: list[str] = Field(default_factory=list)
 
     @property
     def verified(self) -> bool:
