@@ -3,6 +3,7 @@ from pathlib import Path
 from rich.console import Console
 from rich.panel import Panel
 
+from app.agents.basic_classifier import BasicFailureClassifier
 from app.agents.model_repair import ModelRepairAgent
 from app.mission.controller import execute_mission
 from app.mission.models import Mission
@@ -30,6 +31,7 @@ def main() -> None:
     evidence = execute_mission(
         mission=mission,
         repair_agent=repair_agent,
+        failure_classifier=BasicFailureClassifier(),
     )
 
     console.print(

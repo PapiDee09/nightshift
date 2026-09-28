@@ -1,4 +1,5 @@
 from app.agents.base import RepairAgent
+from app.agents.failure_classifier import FailureClassifier
 from app.mission.models import Evidence, Mission
 from app.mission.runner import run_command
 
@@ -6,6 +7,7 @@ from app.mission.runner import run_command
 def execute_mission(
     mission: Mission,
     repair_agent: RepairAgent,
+    failure_classifier: FailureClassifier | None = None,
 ) -> Evidence:
     before_code, before_output = run_command(
         mission.test_command,
@@ -14,6 +16,18 @@ def execute_mission(
 
     if before_code == 0:
         raise RuntimeError("Mission target is not currently failing.")
+
+    if failure_classifier is not None:
+        classification = failure_classifier.classify(
+            before_output
+        )
+
+        if not classification.repair_allowed:
+            raise RuntimeError(
+                "Repair blocked by failure classification: "
+                f"{classification.kind.value} — "
+                f"{classification.reason}"
+            )
 
     target_path = mission.repo_path / mission.target_file
 
@@ -31,7 +45,9 @@ def execute_mission(
     )
 
     if patched_source == original_source:
-        raise RuntimeError("Repair agent returned an unchanged file.")
+        raise RuntimeError(
+            "Repair agent returned an unchanged file."
+        )
 
     target_path.write_text(patched_source)
 

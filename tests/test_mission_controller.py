@@ -84,3 +84,39 @@ def test_failed_repair_is_rolled_back(tmp_path: Path):
     assert (
         tmp_path / "calculator.py"
     ).read_text() == BROKEN
+
+
+class BlockingClassifier:
+    def classify(self, failure_output: str):
+        from app.mission.failure import (
+            FailureClassification,
+            FailureKind,
+        )
+
+        return FailureClassification(
+            kind=FailureKind.INFRASTRUCTURE,
+            reason="Synthetic infrastructure failure.",
+            confidence=1.0,
+            repair_allowed=False,
+        )
+
+
+def test_blocked_failure_never_repairs(tmp_path: Path):
+    mission = create_repo(tmp_path)
+
+    try:
+        execute_mission(
+            mission=mission,
+            repair_agent=GoodRepairAgent(),
+            failure_classifier=BlockingClassifier(),
+        )
+    except RuntimeError as exc:
+        assert "Repair blocked by failure classification" in str(exc)
+    else:
+        raise AssertionError(
+            "Expected repair to be blocked."
+        )
+
+    assert (
+        tmp_path / "calculator.py"
+    ).read_text() == BROKEN
